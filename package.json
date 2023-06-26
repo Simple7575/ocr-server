@@ -1,0 +1,41 @@
+{
+    "name": "ocr",
+    "version": "1.0.0",
+    "description": "OCR, Image to text converter.",
+    "main": "index.js",
+    "type": "module",
+    "scripts": {
+        "start": "node ./dist/index.js",
+        "rimraf": "./node_modules/rimraf/bin.js",
+        "build": "rimraf ./dist && tsc",
+        "dev": "nodemon --exec node --loader ts-node/esm src/index.ts",
+        "tsc": "tsc",
+        "watch:tsc": "tsc -W",
+        "watch:js": "nodemon dist/index.js",
+        "nodemon:watch": "nodemon --exec tsc -w ./src/index.ts --outDir ./dist"
+    },
+    "keywords": [
+        "OCR",
+        "Image to text."
+    ],
+    "author": "Moses",
+    "license": "MIT",
+    "dependencies": {
+        "@grammyjs/conversations": "^1.1.1",
+        "@grammyjs/files": "^1.0.4",
+        "@techstark/opencv-js": "^4.7.0-release.1",
+        "canvas": "^2.11.2",
+        "dotenv": "^10.0.0",
+        "grammy": "^1.14.1",
+        "jimp": "^0.22.8",
+        "jsdom": "^22.1.0",
+        "tesseract.js": "^4.1.1"
+    },
+    "devDependencies": {
+        "@types/jsdom": "^21.1.1",
+        "nodemon": "^2.0.20",
+        "rimraf": "^5.0.0",
+        "ts-node": "^10.9.1",
+        "typescript": "^4.9.4"
+    }
+}
