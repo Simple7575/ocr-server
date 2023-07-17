@@ -1,52 +1,34 @@
-import { Bot, session } from "grammy";
-import { conversations, createConversation } from "@grammyjs/conversations";
-import { hydrateFiles } from "@grammyjs/files";
-import dotenv from "dotenv";
+import express from "express";
+import cors from "cors";
+import helmet from "helmet";
 import cv from "@techstark/opencv-js";
-// internal
-import { start } from "./handlers/start.js";
-import { Ocr } from "./conversation/ocr.js";
-// types
-import { type ContextType, type ApiType } from "../types/context";
+//
+import { bot } from "./bot/index.js";
+import { BOT_TOKEN, PORT, WEB_URI, MODE } from "./constants.js";
+import botRouter from "./bot/route.js";
 
-dotenv.config();
+const app = express();
 
-const Token = process.env.BOT_TOKEN;
-if (!Token) throw new Error("Bot Token needed.");
-const bot = new Bot<ContextType, ApiType>(Token);
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(cors({ origin: "*" }));
+app.use(helmet());
 
-bot.use(
-    session({
-        initial() {
-            return {};
-        },
-        getSessionKey(ctx) {
-            return ctx.from?.id.toString();
-        },
-    })
-);
-bot.use(conversations());
-bot.use(createConversation(Ocr));
-// Use the plugin.
-bot.api.config.use(hydrateFiles(bot.token));
-
-bot.api.setMyCommands([
-    {
-        command: "start",
-        description: "Start",
-    },
-    {
-        command: "ocr",
-        description: "Image to text converter.",
-    },
-]);
-
-bot.command("start", start);
-bot.command("ocr", async (ctx) => {
-    await ctx.conversation.enter("Ocr");
-});
+app.use("/bot", botRouter);
 
 cv["onRuntimeInitialized"] = () => {
     console.log("CV Initialized");
-    bot.start({ drop_pending_updates: true });
+    app.listen(PORT, async () => {
+        //
+        console.log(`Listening on port ${PORT}`);
+        if (MODE === "Dev") {
+            bot.start({ drop_pending_updates: true });
+        } else {
+            if (!BOT_TOKEN) throw new Error("Bot Token needed.");
+            if (!WEB_URI) throw new Error("Web URI needed");
+            await bot.api.setWebhook(`${WEB_URI || "http://localhost:5000"}/bot/bot${BOT_TOKEN}`, {
+                drop_pending_updates: true,
+            });
+        }
+    });
 };

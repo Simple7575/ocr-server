@@ -1,13 +1,12 @@
 import { Canvas, createCanvas, Image, ImageData, loadImage } from "canvas";
 import { JSDOM } from "jsdom";
-import { writeFileSync, existsSync, mkdirSync } from "fs";
-import cv, { error } from "@techstark/opencv-js";
+import { writeFileSync, rmSync } from "fs";
+import cv from "@techstark/opencv-js";
 import Tesseract, { createWorker } from "tesseract.js";
-import Jimp from "jimp";
 // types
 import { type ConversationType, type ContextType } from "../../types/context";
 
-const recognize = async (imgPath: string = "./img/processed.jpg") => {
+const recognize = async (imgPath: string) => {
     const worker = await createWorker({
         logger: (message) => console.log(message.progress),
     });
@@ -41,12 +40,10 @@ function installDOM() {
     global.HTMLImageElement = Image;
 }
 
-const processImage = async (imgPath: string = "./img/example.jpg", cb: (s: string) => void) => {
-    console.log("Outer");
+const processImage = async (imgPath: string, fileID: string, cb: (s: string) => void) => {
     try {
         installDOM();
         // cv["onRuntimeInitialized"] = () => {
-        console.log("Inner");
         loadImage(imgPath).then((image) => {
             const canvas = createCanvas(image.width, image.height);
             const ctx = canvas.getContext("2d");
@@ -63,22 +60,14 @@ const processImage = async (imgPath: string = "./img/example.jpg", cb: (s: strin
             cv.imshow(canvas, dst);
             src.delete();
             dst.delete();
-            writeFileSync("./img/processed.jpg", canvas.toBuffer("image/jpeg"));
-            cb("./img/processed.jpg");
+            writeFileSync(`./img/${fileID}.jpg`, canvas.toBuffer("image/jpeg"));
+            cb(`./img/${fileID}.jpg`);
         });
         // };
     } catch (error) {
         console.error(error);
     }
 };
-//     console.log(cv.getBuildInformation());
-// } else {
-//     console.log("Else");
-//     // WASM
-//     cv["onRuntimeInitialized"] = () => {
-//         console.log(cv.getBuildInformation());
-//     };
-// }
 
 export const Ocr = async (conversations: ConversationType, ctx: ContextType) => {
     try {
@@ -87,13 +76,14 @@ export const Ocr = async (conversations: ConversationType, ctx: ContextType) => 
         const {
             message: { photo },
         } = await conversations.waitFor("message:photo");
+        await ctx.reply("Processing...");
         const photoInfo = await ctx.api.getFile(photo[3].file_id);
-        // const imgUrl = `https://api.telegram.org/file/bot${process.env.BOT_TOKEN}/${photoInfo.file_path}`;
         const imgPath = await photoInfo.download(`./img/${photo[3].file_unique_id}.jpg`);
-        await processImage(imgPath, (path) => {
-            recognize(path).then((text) => {
-                ctx.reply(text);
-            });
+        await processImage(imgPath, photo[3].file_unique_id, async (path) => {
+            await ctx.replyWithChatAction("typing");
+            const text = await recognize(path);
+            await ctx.reply(text);
+            rmSync(path);
         });
     } catch (error) {
         console.error(error);
