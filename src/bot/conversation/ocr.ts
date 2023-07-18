@@ -75,7 +75,7 @@ export const Ocr = async (conversations: ConversationType, ctx: ContextType) => 
 
         if (isOCRAllowed === "Disallow") {
             await ctx.reply(
-                `We apologize for any inconvenience caused. Currently, each user is limited to using OCR only three times within a day. However, we invite you to visit our <a href="https://simple-mmg.netlify.app">website</a> for unlimited image-to-text conversions. Please feel free to return later or take advantage of our <a href="https://simple-mmg.netlify.app">website</a> for an unlimited number of conversions. Thank you for your understanding!
+                `We apologize for any inconvenience caused. Currently, each user is limited to using OCR only three times within a day. However, we invite you to visit our <a href="https://image-to-text-mmg.netlify.app">website</a> for unlimited image-to-text conversions. Please feel free to return later or take advantage of our <a href="https://image-to-text-mmg.netlify.app">website</a> for an unlimited number of conversions. Thank you for your understanding!
 Your last use was at: <u><b>${lastUse.toLocaleString()}</b></u>`,
                 { parse_mode: "HTML" }
             );
@@ -95,7 +95,7 @@ Your last use was at: <u><b>${lastUse.toLocaleString()}</b></u>`,
             const text = await recognize(path);
             await ctx.reply(text);
             await ctx.reply(
-                "If you are not satisfied with result visit our <a href='https://simple-mmg.netlify.app'>website</a> to process image befor converting.",
+                "If you are not satisfied with result visit our <a href='https://image-to-text-mmg.netlify.app'>website</a> to process image befor converting.",
                 { parse_mode: "HTML" }
             );
             await incOcrUsedQuantity(ctx.from!.id);
