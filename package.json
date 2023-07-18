@@ -14,6 +14,11 @@
         "watch:js": "nodemon dist/index.js",
         "nodemon:watch": "nodemon --exec tsc -w ./src/index.ts --outDir ./dist"
     },
+    "nodemonConfig": {
+        "ignore": [
+            "./jsons"
+        ]
+    },
     "keywords": [
         "OCR",
         "Image to text."
@@ -34,6 +39,7 @@
         "helmet": "^7.0.0",
         "jimp": "^0.22.8",
         "jsdom": "^22.1.0",
+        "mongoose": "^7.3.4",
         "tesseract.js": "^4.1.1"
     },
     "devDependencies": {
