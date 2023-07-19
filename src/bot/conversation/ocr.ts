@@ -1,7 +1,7 @@
 import { Canvas, createCanvas, Image, ImageData, loadImage } from "canvas";
 import { JSDOM } from "jsdom";
 import { writeFileSync, rmSync } from "fs";
-import cv from "@techstark/opencv-js";
+// import cv from "@techstark/opencv-js";
 import Tesseract, { createWorker } from "tesseract.js";
 //
 import { checkOcrUsedQuantity, incOcrUsedQuantity } from "../utils/checkOcrUsedQuantity.js";
@@ -28,44 +28,44 @@ const recognize = async (imgPath: string) => {
     return res.data.text;
 };
 
-function installDOM() {
-    const dom = new JSDOM();
+// function installDOM() {
+//     const dom = new JSDOM();
 
-    global.document = dom.window.document;
-    // @ts-expect-error
-    global.Image = Image;
-    // @ts-expect-error
-    global.HTMLCanvasElement = Canvas;
-    // @ts-expect-error
-    global.ImageData = ImageData;
-    // @ts-expect-error
-    global.HTMLImageElement = Image;
-}
+//     global.document = dom.window.document;
+//     // @ts-expect-error
+//     global.Image = Image;
+//     // @ts-expect-error
+//     global.HTMLCanvasElement = Canvas;
+//     // @ts-expect-error
+//     global.ImageData = ImageData;
+//     // @ts-expect-error
+//     global.HTMLImageElement = Image;
+// }
 
-const processImage = async (imgPath: string, fileID: string, cb: (s: string) => void) => {
-    installDOM();
-    // cv["onRuntimeInitialized"] = () => {
-    loadImage(imgPath).then((image) => {
-        const canvas = createCanvas(image.width, image.height);
-        const ctx = canvas.getContext("2d");
+// const processImage = async (imgPath: string, fileID: string, cb: (s: string) => void) => {
+//     installDOM();
+//     // cv["onRuntimeInitialized"] = () => {
+//     loadImage(imgPath).then((image) => {
+//         const canvas = createCanvas(image.width, image.height);
+//         const ctx = canvas.getContext("2d");
 
-        // @ts-expect-error
-        const src = cv.imread(image);
-        const dst = new cv.Mat();
-        cv.resize(src, dst, new cv.Size(0, 0), 7, 7, cv.INTER_CUBIC);
-        cv.cvtColor(dst, dst, cv.COLOR_RGBA2GRAY, 0);
-        cv.threshold(dst, dst, 158, 255, cv.THRESH_TOZERO);
-        let ksize = new cv.Size(13, 13);
-        cv.GaussianBlur(dst, dst, ksize, 100, 0, cv.BORDER_DEFAULT);
-        // @ts-expect-error
-        cv.imshow(canvas, dst);
-        src.delete();
-        dst.delete();
-        writeFileSync(`./img/${fileID}.jpg`, canvas.toBuffer("image/jpeg"));
-        cb(`./img/${fileID}.jpg`);
-    });
-    // };
-};
+//         // @ts-expect-error
+//         const src = cv.imread(image);
+//         const dst = new cv.Mat();
+//         cv.resize(src, dst, new cv.Size(0, 0), 7, 7, cv.INTER_CUBIC);
+//         cv.cvtColor(dst, dst, cv.COLOR_RGBA2GRAY, 0);
+//         cv.threshold(dst, dst, 158, 255, cv.THRESH_TOZERO);
+//         let ksize = new cv.Size(13, 13);
+//         cv.GaussianBlur(dst, dst, ksize, 100, 0, cv.BORDER_DEFAULT);
+//         // @ts-expect-error
+//         cv.imshow(canvas, dst);
+//         src.delete();
+//         dst.delete();
+//         writeFileSync(`./img/${fileID}.jpg`, canvas.toBuffer("image/jpeg"));
+//         cb(`./img/${fileID}.jpg`);
+//     });
+//     // };
+// };
 
 export const Ocr = async (conversations: ConversationType, ctx: ContextType) => {
     try {
@@ -90,17 +90,27 @@ Your last use was at: <u><b>${lastUse.toLocaleString()}</b></u>`,
         await ctx.reply("Please wait. Processing...");
         const photoInfo = await ctx.api.getFile(photo[3].file_id);
         const imgPath = await photoInfo.download(`./img/${photo[3].file_unique_id}.jpg`);
-        await processImage(imgPath, photo[3].file_unique_id, async (path) => {
-            await ctx.replyWithChatAction("typing");
-            const text = await recognize(path);
-            await ctx.reply(text);
-            await ctx.reply(
-                "If you are not satisfied with result visit our <a href='https://image-to-text-mmg.netlify.app'>website</a> to process image befor converting.",
-                { parse_mode: "HTML" }
-            );
-            await incOcrUsedQuantity(ctx.from!.id);
-            rmSync(path);
-        });
+
+        await ctx.replyWithChatAction("typing");
+        const text = await recognize(imgPath);
+        await ctx.reply(text);
+        await ctx.reply(
+            "If you are not satisfied with result visit our <a href='https://image-to-text-mmg.netlify.app'>website</a> to process image befor converting.",
+            { parse_mode: "HTML" }
+        );
+        await incOcrUsedQuantity(ctx.from!.id);
+        rmSync(imgPath);
+        // await processImage(imgPath, photo[3].file_unique_id, async (path) => {
+        //     await ctx.replyWithChatAction("typing");
+        //     const text = await recognize(path);
+        //     await ctx.reply(text);
+        //     await ctx.reply(
+        //         "If you are not satisfied with result visit our <a href='https://image-to-text-mmg.netlify.app'>website</a> to process image befor converting.",
+        //         { parse_mode: "HTML" }
+        //     );
+        //     await incOcrUsedQuantity(ctx.from!.id);
+        //     rmSync(path);
+        // });
     } catch (error) {
         await ctx.reply(`Something went wrong. Please contact to support @SimpleGM`, {
             parse_mode: "HTML",
