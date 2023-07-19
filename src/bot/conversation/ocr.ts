@@ -7,6 +7,7 @@ import Tesseract, { createWorker } from "tesseract.js";
 import { checkOcrUsedQuantity, incOcrUsedQuantity } from "../utils/checkOcrUsedQuantity.js";
 // types
 import { type ConversationType, type ContextType } from "../../types/context";
+import { MODE } from "../../constants.js";
 
 const recognize = async (imgPath: string) => {
     const worker = await createWorker({
@@ -69,6 +70,7 @@ const recognize = async (imgPath: string) => {
 
 export const Ocr = async (conversations: ConversationType, ctx: ContextType) => {
     try {
+        const pathPrefix = MODE === "Dev" ? "./src" : "./dist";
         const [isOCRAllowed, lastUse] = await conversations.external(() =>
             checkOcrUsedQuantity(ctx.from!.id)
         );
@@ -89,8 +91,11 @@ Your last use was at: <u><b>${lastUse.toLocaleString()}</b></u>`,
         } = await conversations.waitFor("message:photo");
         await ctx.reply("Please wait. Processing...");
         const photoInfo = await ctx.api.getFile(photo[3].file_id);
-        const imgPath = await photoInfo.download(`./img/${photo[3].file_unique_id}.jpg`);
+        const imgPath = await photoInfo.download(
+            `${pathPrefix}/img/${photo[3].file_unique_id}.jpg`
+        );
 
+        //
         await ctx.replyWithChatAction("typing");
         const text = await recognize(imgPath);
         await ctx.reply(text);
