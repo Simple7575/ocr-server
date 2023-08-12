@@ -5,17 +5,19 @@ import helmet from "helmet";
 //
 import { bot } from "./bot/index.js";
 import { BOT_TOKEN, PORT, WEB_URI, MODE } from "./constants.js";
-import botRouter from "./bot/route.js";
+import { botRouter } from "./bot/routes/update.js";
+import { ocrRouter } from "./routes/ocr.js";
 import { connectDB } from "./db/index.js";
 
 const app = express();
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ limit: "50mb", extended: true }));
 app.use(cors({ origin: "*" }));
 app.use(helmet());
 
 app.use("/bot", botRouter);
+app.use("/ocr", ocrRouter);
 
 app.get("/wake", (req, res) => {
     res.status(200).json({ message: "Ok! Ok! I'm wake!" });

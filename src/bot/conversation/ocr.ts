@@ -2,32 +2,12 @@ import { Canvas, createCanvas, Image, ImageData, loadImage } from "canvas";
 import { JSDOM } from "jsdom";
 import { writeFileSync, rmSync } from "fs";
 // import cv from "@techstark/opencv-js";
-import Tesseract, { createWorker } from "tesseract.js";
 //
+import { recognize } from "../../utils/recognize.js";
 import { checkOcrUsedQuantity, incOcrUsedQuantity } from "../utils/checkOcrUsedQuantity.js";
 // types
 import { type ConversationType, type ContextType } from "../../types/context";
 import { MODE } from "../../constants.js";
-
-const recognize = async (imgPath: string) => {
-    const worker = await createWorker({
-        logger: (message) => console.log(message.progress),
-    });
-
-    await worker.loadLanguage("eng");
-    await worker.initialize("eng");
-    await worker.setParameters({
-        tessedit_pageseg_mode: Tesseract.PSM.AUTO_ONLY,
-        tessedit_ocr_engine_mode: Tesseract.OEM.TESSERACT_ONLY,
-        preserve_interword_spaces: "0",
-        // tessedit_write_images: true,
-    });
-
-    const res = await worker.recognize(imgPath);
-    await worker.terminate();
-
-    return res.data.text;
-};
 
 // function installDOM() {
 //     const dom = new JSDOM();
@@ -70,7 +50,7 @@ const recognize = async (imgPath: string) => {
 
 export const Ocr = async (conversations: ConversationType, ctx: ContextType) => {
     try {
-        const pathPrefix = MODE === "Dev" ? "./src" : "./dist";
+        const pathPrefix = MODE?.toLocaleLowerCase() === "dev" ? "./src" : "./dist";
         const [isOCRAllowed, lastUse] = await conversations.external(() =>
             checkOcrUsedQuantity(ctx.from!.id)
         );

@@ -1,9 +1,9 @@
 import { Router } from "express";
-import { bot } from "./index.js";
+import { bot } from "../index.js";
 
-const router = Router();
+const botRouter = Router();
 
-router.post("/:bot", async (req, res) => {
+botRouter.post("/:bot", async (req, res) => {
     const update = req.body;
 
     await bot.init();
@@ -12,4 +12,4 @@ router.post("/:bot", async (req, res) => {
     res.status(200).send("Ok");
 });
 
-export default router;
+export { botRouter };
