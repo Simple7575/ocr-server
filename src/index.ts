@@ -17,6 +17,10 @@ app.use(helmet());
 
 app.use("/bot", botRouter);
 
+app.get("/wake", (req, res) => {
+    res.status(200).json({ message: "Ok! Ok! I'm wake!" });
+});
+
 // cv["onRuntimeInitialized"] = () => {
 //     console.log("CV Initialized");
 
