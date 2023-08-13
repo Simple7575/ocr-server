@@ -1,11 +1,18 @@
+import { Server } from "socket.io";
+import { DefaultEventsMap } from "socket.io/dist/typed-events.js";
 import Tesseract, { createWorker } from "tesseract.js";
 
-export const recognize = async (imgPath: string) => {
+type Io = Server<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>;
+
+export const recognize = async (imgPath: string, io: Io | undefined = undefined) => {
     const worker = await createWorker({
         // tesseract-core-simd.wasm.js:108 failed to asynchronously prepare wasm: RangeError: WebAssembly.instantiate(): Out of memory: wasm memory
         // tesseract.js RangeError: WebAssembly.instantiate() Out of memory: wasm memory
         // Uncaught (in promise) RuntimeError: Aborted(RangeError: WebAssembly.instantiate(): Out of memory: wasm memory). Build with -sASSERTIONS for more info.
-        logger: (message) => console.log(message.progress),
+        logger: (message) => {
+            if (io) io.emit("loading", { progress: message.progress });
+            console.log(message.progress);
+        },
 
         // gzip: false,
         // // langPath: "lang",

@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
+import { Server } from "socket.io";
 // import cv from "@techstark/opencv-js";
 //
 import { bot } from "./bot/index.js";
@@ -29,7 +30,7 @@ app.get("/wake", (req, res) => {
 connectDB().then(() => {
     console.log("DB connected.");
 
-    app.listen(PORT, async () => {
+    const server = app.listen(PORT, async () => {
         console.log(`Listening on port ${PORT}`);
 
         if (MODE === "Dev") {
@@ -45,5 +46,9 @@ connectDB().then(() => {
             console.log("Bot started with webhook.");
         }
     });
+
+    const io = new Server(server, { cors: { origin: "*" }, path: "/io" });
+
+    app.set("socketio", io);
 });
 // };

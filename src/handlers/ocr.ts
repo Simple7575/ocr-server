@@ -4,7 +4,9 @@ import { recognize } from "../utils/recognize.js";
 
 export const ocrHandler = async (req: Request, res: Response) => {
     try {
-        const text = await recognize(req.body.image);
+        const io = req.app.get("socketio");
+
+        const text = await recognize(req.body.image, io);
 
         res.status(200).json({ text });
     } catch (error) {
